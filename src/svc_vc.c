@@ -249,8 +249,7 @@ svc_vc_ncreate2(int fd, u_int sendsize, u_int recvsize, u_int flags)
 	return (xprt);
 
  err:
-	if (rdvs)
-		mem_free(rdvs, sizeof(struct cf_rendezvous));
+	mem_free(rdvs, sizeof(struct cf_rendezvous));
 
 	if (xprt) {
 #if defined(HAVE_BLKIN)
