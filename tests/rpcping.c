@@ -71,26 +71,26 @@ get_conn_fd(const char *host, int hbport)
 			sin = (struct sockaddr_in *) res->ai_addr;
 			sin->sin_port = htons(hbport);
 			r = connect(fd, (struct sockaddr *) sin,
-				sizeof(struct sockaddr));
+				    sizeof(struct sockaddr));
 			if (!!r) {
 				close(fd);
 			} else
 				goto done;
 		}
-		break;
+			break;
 		case AF_INET6:
 		{
 			struct sockaddr_in6 *sin6;
 			sin6 = (struct sockaddr_in6 *) res->ai_addr;
 			sin6->sin6_port = htons(hbport);
 			r = connect(fd, (struct sockaddr *) sin6,
-				sizeof(struct sockaddr));
+				    sizeof(struct sockaddr));
 			if (!!r) {
 				close(fd);
 			} else
 				goto done;
 		}
-		break;
+			break;
 		default:
 			break;
 		};
@@ -186,7 +186,7 @@ decode_request(SVCXPRT *xprt, XDR *xdrs)
 
 static void usage()
 {
-	printf("Usage: rpcping <protocol> <host> [--threads=<n>] [--count=<n>] [--prog=<n>] [--vers=<n>] [--proc=<n>] [--nobind]\n");
+	printf("Usage: rpcping <protocol> <host> [--rpcbind] [--threads=<n>] [--count=<n>] [--port=<n>] [--program=<n>] [--version=<n>] [--procedure=<n>] [--nobind]\n");
 }
 
 int main(int argc, char *argv[])
@@ -205,12 +205,12 @@ int main(int argc, char *argv[])
 	int prog = 100003; /* nfs */
 	int vers = 3; /* allow raw, rdma, tcp, udp by default */
 	int proc = 0;
-	int send_sz = 32768;
-	int recv_sz = 32768;
-	int rpcbind = true;
+	int send_sz = 8192;
+	int recv_sz = 8192;
+	int rpcbind = false;
 	int opt;
 
-	/* per Bill, proto and host/dest positional */
+	/* protocol and host/dest positional */
 	if (argc < 3) {
 		usage();
 		exit(1);
@@ -224,10 +224,10 @@ int main(int argc, char *argv[])
 		{"port", optional_argument, NULL, 'p'},
 		{"threads", optional_argument, NULL, 't'},
 		{"count", optional_argument, NULL, 'c'},
-		{"prog", optional_argument, NULL, 'm'},
-		{"vers", optional_argument, NULL, 'v'},
-		{"proc", optional_argument, NULL, 's'},
-		{"nobind", optional_argument, NULL, 'b'},
+		{"program", optional_argument, NULL, 'm'},
+		{"version", optional_argument, NULL, 'v'},
+		{"procedure", optional_argument, NULL, 'x'},
+		{"rpcbind", optional_argument, NULL, 'b'},
 		{NULL, 0, NULL, 0}
 	};
 
@@ -252,11 +252,11 @@ int main(int argc, char *argv[])
 		case 'v':
 			vers = atoi(optarg);
 			break;
-		case 's':
+		case 'x':
 			proc = atoi(optarg);
 			break;
 		case 'b':
-			rpcbind = false;
+			rpcbind = true;
 			break;
 		default:
 			usage();
@@ -334,8 +334,8 @@ int main(int argc, char *argv[])
 		total += s->averageTime;
 	}
 
-	fprintf(stdout, "rpcping %s %s threads=%d count=%d (program=%d version=%d procedure=%d): %2.4lf, total %2.4lf\n",
-		proto, host, nthreads, count, prog, vers, proc,
+	fprintf(stdout, "rpcping %s %s threads=%d count=%d (port=%d program=%d version=%d procedure=%d): %2.4lf, total %2.4lf\n",
+		proto, host, nthreads, count, port, prog, vers, proc,
 		total / nthreads, total);
 	fflush(stdout);
 	return (0);
